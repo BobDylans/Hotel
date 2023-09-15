@@ -14,15 +14,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-@RestController("/users")
+@RestController
 @Api("用户接口")
+@RequestMapping("users")
 @Slf4j
 public class UsersController {
     @Autowired
@@ -62,7 +65,7 @@ public class UsersController {
         return new Result<>(true, StatusCode.ERROR, "发送成功");
     }
 
-    @PostMapping("/login")
+    @PostMapping("/duanxin/login")
     @ApiOperation("短信验证登录")
     public Result<Users> login(@RequestBody Map map, HttpSession session){
         log.info(map.toString());
@@ -102,6 +105,33 @@ public class UsersController {
             return new Result<>(true, StatusCode.OK, "发送成功",user);
         }
         return new Result<>(false,StatusCode.ERROR,"登陆失败");
+    }
+
+    @PostMapping("/login")
+    public Result login(HttpServletRequest request, @RequestBody Users users){
+
+        //1、将页面提交的密码password进行md5加密处理
+        String password = users.getPassword();
+        password = DigestUtils.md5DigestAsHex(password.getBytes());
+
+        //2、根据页面提交的用户名username查询数据库
+        LambdaQueryWrapper<Users> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Users::getUsername, users.getUsername());
+        Users user = usersService.getOne(queryWrapper);
+
+        //3、如果没有查询到则返回登录失败结果
+        if(user == null){
+            return new Result(false,StatusCode.ERROR,"登陆失败");
+        }
+
+        //4、密码比对，如果不一致则返回登录失败结果
+        if(!user.getPassword().equals(password)){
+            return new Result(false,StatusCode.ERROR,"登陆失败");
+        }
+
+        //6、登录成功，将员工id存入Session并返回登录成功结果
+        request.getSession().setAttribute("employee",user.getId());
+        return new Result(true,StatusCode.OK,"登陆成功",user);
     }
 
 
