@@ -37,6 +37,7 @@ public class UsersController {
     }
 
     @PostMapping("/sendMsg")
+    @ApiOperation("发送短信")
     public Result<String> sendMsg(@RequestBody Users user, HttpSession session){
         //获取手机号
         String phone = user.getPhone();
@@ -62,6 +63,7 @@ public class UsersController {
     }
 
     @PostMapping("/login")
+    @ApiOperation("短信验证登录")
     public Result<Users> login(@RequestBody Map map, HttpSession session){
         log.info(map.toString());
 
