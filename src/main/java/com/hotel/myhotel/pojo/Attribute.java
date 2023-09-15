@@ -4,17 +4,20 @@ import java.io.Serializable;
 import lombok.Data;
 
 /**
- * users
+ * attribute
  * @author 
  */
 @Data
-public class Users implements Serializable {
-    private String phone;
+public class Attribute implements Serializable {
+    /**
+     * 属性ID
+     */
     private Integer id;
 
-    private String username;
-
-    private String password;
+    /**
+     * 属性名称
+     */
+    private String attributename;
 
     private static final long serialVersionUID = 1L;
 }
